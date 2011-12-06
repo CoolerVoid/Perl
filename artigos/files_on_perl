@@ -1,0 +1,189 @@
+muitos usuarios usa perl apenas para CGI nem imagina que da para fazer com ele :D
+ou seja so usa para motivos de WEB bem aqui venho
+mostrar como abrir arquivos em perl,ler documentos
+renomear documentos,permissões etc.Assim quem sabe você usa perl para outras coisas :lol:
+
+Abrindo um documento em perl e fechando
+muito simples usando a função "open" podemos fazer isso
+como no exemplo:
+
+Código: Selecionar tudo
+    open (my $arquivo, "<$texto") or die "Nao foi possivel abrir o  $texto:$!";
+          while (<$arquivo>) {
+               if ($_ =~ /http:\/\//) { print "possivel link\n $_ \n"; }
+    close $arquivo;
+
+
+explicando foi aberto a variavel "$texto" que pode ser um documento
+qualquer dado pelo usuario, foi aberto para leitura,logo depois tem
+um "loop" com "while" ou seja enquanto tiver linhas no Documento ele vai
+continuar lendo depois tem uma regex simples que acha links e imprime...
+
+Agora to com medo :!: por que tem sinal de menor "(my $arquivo "<$texto")"
+vejamos
+
+ARQUIVO: abre ARQUIVO apenas para leitura (o mesmo que <ARQUIVO)
+>ARQUIVO: abre ARQUIVO para escrita, criando-o caso n~ao exista
+>>ARQUIVO: abre ARQUIVO para modificacao
++>ARQUIVO: abre ARQUIVO para leitura/escrita
+
+Por que voce colocou o "die" ?
+bem no caso o comando "die" he para imprimir na tela caso o documento
+nao for encontrado pelo o programa pode ser usado "warn" tambem...
+quanto a expressao "or" nos poderiamos subistituir pela expressão
+booleana "||" que seria a mesma coisa... ficando mais elegante
+
+Código: Selecionar tudo
+    open (my $arquivo, "<$texto") || warn "Nao foi possivel abrir $texto:$!";
+
+
+
+Código: Selecionar tudo
+    Como posso escrever num documento ?
+
+
+Vamos tentar com "POG"
+
+Código: Selecionar tudo
+    system("echo \"@seu_texto\" >> resultado.txt");
+
+
+muito ruin de ver este codigo nao ?
+vamos usar forma certa sem "POG"
+
+Código: Selecionar tudo
+    open (OUT, ">>texto.txt");
+    print OUT "$numero\n";
+    close(OUT);
+
+
+no exemplo eu soh usei um numero para imprimir num documento
+ou seja ele abre para modificacao ">>" e imprime a variavel($numero)
+no documento...
+
+Como posso testar se o documento existe ?
+isso he muito simples vamos usar a expressão "-e nome_arquivo"
+ex:
+
+Código: Selecionar tudo
+    if (-e "index.html" && -e "index.cgi") {
+        print "voce tem as duas index html e cgi\n";
+    }
+
+
+muito simples o que tem de diferente ai he a expressão booleana "&&"
+que interpretamos como "tal elemento e tal elemento" isso deixa o codigo
+mais rico e mais limpo
+
+Vamos ver esta balela para intender melhor
+
+Código: Selecionar tudo
+    -r arqivo ou diretorio para leitura
+    -w arquivo ou diretorio para escrita
+    -x arquivo ou diretorio para executar
+    -o arquivo ou diretorio que pertence a um usuario
+    -R arquivo ou diretorio legivel para um user
+    -W arquivo ou diretorio para escrita para um user
+    -X arquivo ou diretorio para executar par aum user
+    -O arquivo ou diretorio de um user
+    -e testa a existencia de um diretorio ou arquivo
+    -z testa existencia se tiver nada no arquivo...
+    -s testa a existencia do arquivo ou diretorio se tiver mais do que 0 de
+
+
+tamanho...
+falta mais elementos isso voce encontra facilmente na internet...
+
+Usando o "stat"
+o "stat" você pode usar para mostrar para o "perl" onde esta o diretório
+que voce ta trabalhando algumas variaveis exemplo:
+
+Código: Selecionar tudo
+    (@lista_documentos) = (stat("/home/voce/teste"))[1,2];
+
+
+explicando codigo colocando o stat dentro do array to mostrando que as
+arquivos 1(da primeira linha) e 2(segunda linha) estao em "/homo/voce/este"
+"stat e lstat" pode ser usado como links simbolicos tambem...
+
+Como posso mover para uma arvore de diretórios diferente ?
+voce pode usar o comando "chdir" para fazer este feito como exemplo:
+
+Código: Selecionar tudo
+    chdir("/etc") || die "voce nao mode dar cd /etc ($!)";
+
+
+
+Como posso abrir um Diretório?
+simples usando comando "opendir" exemplo
+
+Código: Selecionar tudo
+    opendir(ETC,"/etc") || die "no etc?: $!";
+    while ($name = readdir(ETC)) {
+        print "$name\n";
+    }
+    closedir(ETC);
+
+
+note o comando "readdir" que seria para ler o que esta no "/etc"
+
+
+Como posso deletar um documento ou um diretório no perl ?
+Para isso temos o comando "unlink" digamos que queremos deletar
+dois documentos ou diretorios exemplo..
+
+Código: Selecionar tudo
+    unlink ("seila","index.html"); # mata dois passaros de uma ves
+    unlink <*.txt>;                # mesma coisa de "rm *.txt" em shell
+
+
+voce pode usar um "foreach" para deletar os documentos de um diretorio
+
+Código: Selecionar tudo
+    foreach $file (<*.txt>) {
+        unlink($file) || warn "nao foi possivel deletar docs de $file: $!";
+    }
+
+
+muito simples para diretórios pode se usar "rmdir"
+
+Código: Selecionar tudo
+    rmdir("cemiterio") || die "nao foi possivel remover cemiterio: $!";
+
+
+
+Agora chegando ao fim
+renomeando arquivos ou documentos,criando diretórios e permissões
+
+Código: Selecionar tudo
+    rename("teste","bobo") || die "nao foi possivel renomear pedidos: $!";
+
+
+para criar um diretório basta
+
+Código: Selecionar tudo
+    mkdir("teste",0777) || die "nao foi possivel dar mkdir: $!";
+
+
+O que seria "0777" seria em octal "rwx" permissao para alterar,ler e
+executar no padrao "Unix",falando em permissões em perl voce pode usar
+para setar permissões o comando "chmod" ex:
+
+Código: Selecionar tudo
+    chmod(0666,"arquivo","ola");
+
+
+em Perl pode ateh usar comando "chown" como ex:
+
+Código: Selecionar tudo
+    chown(1234, 35, "slate", "granite");
+
+
+explicando "1234" seria o "UID" e 35 seria o "GID"
+
+vo acaba por aqui com o artigo ja da para fazer muitas brincadeiras com isso ja ;)
+dúvidas coment
+
+-------------
+POG = programação orientada a gambiarras
+maois info do que he "POG" em http://desciclo.pedia.ws/wiki/Pog
