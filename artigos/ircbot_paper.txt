@@ -1,0 +1,210 @@
+Muitas pessoas me pergunta como faço um IRC BOT
+vamos para o inicio vo usar como exemplo o HazardBot bot que se encontra aqui neste forum
+em ferramentas no setor de segurança... não vo passar s osurce inteira só o esqueleto para
+você usar sua criatividade e fazer o seu proprio...
+
+primeira coisa seria carregar os modulos
+
+Código: Selecionar tudo
+    #!/usr/bin/perl
+    ############################## Modulos
+    use Acme::Morse;
+    use IO::Socket::INET;
+    use HTTP::Request;
+    use LWP::UserAgent;
+
+
+explicando cada um
+*Acme::Morse = para esconder nossa source assim nimguem vai copiar ,Cuidado quando voce compila source não tem como voltar atras fica tudo em codigo morse! então soh add este modulo quando você quiser esconder o source, ou seja faça uma copia para você e outra você deixa para usar com "Acme" assim seus amigos não vão ver a source ;)
+
+*IO::Socket::INET = vamos usalo para conectar no IRC com um simples constructor
+
+*HTTP::Request = uma ves conectado no IRC vamos usar este modulo para fazer funções a parte do BOT,funções que precisão se conectar em algum host httpd para pegar informaçõe spor exemplo...
+
+*LWP::UserAgent = vamos usar ele na mesma meta do HTTP::Request
+
+Segundo passo pegando variaveis
+Como nem todo usuario sabe programar em Perl que tal pegarmos as variaveis
+
+Código: Selecionar tudo
+    print "qual he o seu nick\?\n";
+    my $master=<STDIN>; chomp $master;
+    print "qual he o seu CMD\?\n";
+    my $cmd=<STDIN>; chomp $cmd;
+    print "qual he o seu id\?\n";
+    my $id=<STDIN>; chomp $id;
+    print "qual server deseja entra\?\n";
+    my $server=<STDIN>; chomp $server;
+    print "qual canal deseja entrar\?\n";
+    my $canale=<STDIN>; chomp $canale;
+    print "qual porta\? ex 6667\n";
+    my $porta=<STDIN>; chomp $porta;
+
+
+
+Terceiro passo o Processo
+
+Código: Selecionar tudo
+    my $name = "nome_do_bot";
+    my $processo = 'nome_processo';
+    my $nick="nick_no_irc";
+    my $identify = "identificacao";
+    my $pid=fork;
+    exit if $pid;
+    $0="$processo"."\0"x16; #um hex bem "POG"
+
+
+Quarto Passo o constructor "ETA JOES fico com medo desta PARTE neh :!: "
+Esta parte é a mais inportante num "IRC BOT" sem ela seu BOT simplesmente não conecta :lol:
+
+Código: Selecionar tudo
+    ############################### INicio Constructor conector da socket
+    my $sk = IO::Socket::INET->new(PeerAddr=>"$server",
+                                   PeerPort=>"$porta",
+                                    Proto=>"tcp") or die "erro na conexao\n";
+    $sk->autoflush(1);
+    print $sk "NICK $nick\r\n";
+    print $sk "USER $identify 8 * :$name\r\n";
+    print $sk "JOIN $canale\r\n";
+    print $sk "PRIVMSG $canale :Acabei de entrar mestre\r\n";
+    print $sk "PRIVMSG $canale :botecounix ponto com ponto br\r\n";
+
+
+esta variavel "$sk" seria a variavel que chama o "socket::Inet"
+
+Quinto passo "Que inicie a criatividade :lol: "
+Neste passo vai precisar de um loop para o Bot ficar lendo linhas la do irc
+e responder a "PING", respondendo a packets com "PONG" para não dar muito na cara
+que é um Bot :lol: vamos ver como ficaria
+
+Código: Selecionar tudo
+    while($line = <$sk>){
+    $line =~ s/\r\n$//;
+
+    if ($line=~ /^PING \:(.*)/)
+    {
+    print "PONG :$1";
+    print $sk "PONG :$1";
+    }
+
+
+Simples e facil ,atenção sem esta regex seu bot não vai rolar perfeitamente
+
+Código: Selecionar tudo
+    $line =~ s/\r\n$//;
+
+
+não mude ela Ok :!:
+Pronto temos um Bot no irc e agora que colocar uma função ?
+Simples vo dar um exemplo de função esta mesma função esta no meu artigo de "regex simples" porem
+esta modificada para ser usada com BOT...
+
+Código: Selecionar tudo
+    if($line =~ m/^\:$master\!(.*?)\@(.*?) PRIVMSG (.*?) :!tempo (.*?)$/){
+    if (my $pid = fork) {
+    waitpid($pid, 0);
+    } else {
+    if (fork) {
+    exit;
+    } else {
+    my $local=$4;
+    stampa($sk, "PRIVMSG $canale : ^C7 --==Hazard-bot-COMMANDO-ELiTe==-- Temperatura Brasil");
+    stampa($sk, "PRIVMSG $canale : ^C3 Vendo ^C5 Temperatura ^C3 senhor ^C7 $master");
+    my $pagina="http://www1.folha.uol.com.br/folha/tempo/br-$local.shtml";
+    $agent = new LWP::UserAgent;
+    $request = HTTP::Request->new('GET',$pagina);
+    $result = $agent->request($request);
+    @result = $result->content();
+    open(RES,">","temperatura.txt");
+    print RES @result; close(RES); open(RES,"<","temperatura.txt");
+    @texto = <RES>; close(RES); unlink ("temperatura.txt");
+    foreach (@texto) {
+    if ($_ =~ m/^<p><b>Temperatura:<\/b> (.*?)<\/p>/) {
+    my $graus="$1";
+    stampa($sk, "PRIVMSG $canale : ^C3 Local: ^C5 $local ");
+    stampa($sk, "PRIVMSG $canale : ^C3 Temperatura: ^C5 $graus ");}}
+    stampa($sk, "PRIVMSG $canale : ^C3 procura ^C5 terminada ");
+    }}
+    }
+
+
+Entendendo a função bem o que chama a função he a regex
+
+Código: Selecionar tudo
+    m/^\:$master\!(.*?)\@(.*?) PRIVMSG (.*?) :!tempo (.*?)$/)
+
+
+ou seja o bot soh vai executar quando o mestre dele mandar quando a expressão
+
+Código: Selecionar tudo
+    "!tempo (.*)"
+
+
+vai ser o comando para chamar o nossa função de tempo exemplo o usuario digita
+"!tempo sao_paulo" o bot ira voltar com a temperatura d esao paulo no momento...
+esta função tirei do "HazardBot" uma das minhas criações :twisted:
+
+Mas por que você usou o "fork"?
+Simples com est função o bot pode responder a outros comandos enquanto processa esta função
+assim ele não "buga"
+
+Código: Selecionar tudo
+    if (my $pid = fork) {
+    waitpid($pid, 0);
+    } else {
+    if (fork) {
+    exit;
+    } else {
+
+
+
+Por que você usou esta coisa loka de "stampa" onde esta esta função?
+Usando uma função "stampa" que seria apenas para colar nosso escrito no "irc"
+de maneira que não "bug",você pode usar "cor" nas suas fontes tambem que não buga
+
+Código: Selecionar tudo
+    sub stampa()
+    {
+    if ($#_ == '1') {
+    my $sk = $_[0];
+    print $sk "$_[1]\n";
+    } else {
+    print $sk "$_[0]\n";
+    }}
+
+
+coloque esta função no seu bot se você vor usar stampa ;)
+
+Mas como você pegou a variavel usando regex ?
+Isso apenas de olhar o codigo da função "tempo" você ja nota
+vejamos um outro exemplo bem simples
+
+Código: Selecionar tudo
+    if($line =~ m/^\:$master\!(.*?)\@(.*?) PRIVMSG (.*?) :!soma (.*?) (.*?)$/){
+    $numero1=$4;
+    $numero2=$5;
+    my $soma = $numero1+$numero2;
+    print $sk ("PRIVMSG $chanel :Hazard_Bot resultado da soma deu $soma  \r\n");
+
+
+repare que a função soma não usa "stampa" ;)
+
+e se eu quiser somar 3 numeros como seria a regex ?
+seria
+
+Código: Selecionar tudo
+    m/^\:$master\!(.*?)\@(.*?) PRIVMSG (.*?) :!soma (.*?) (.*?) (.*?)$/
+
+
+Só coloquei mais uma expreção "(.*?)" para extrair e jogar para alguma variavel
+isso ficaria
+
+Código: Selecionar tudo
+    $numero1=$4;
+    $numero2=$5;
+    $numero3=$6;
+
+
+
+Ufá terminei
+acho que com estas info da para você fazer seu "IRC BOT"

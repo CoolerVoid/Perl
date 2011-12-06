@@ -1,0 +1,180 @@
+Sempre que vejo alguem estudando perl ja quer ir direto para sockets sem saber
+usar um "print" direito,bem Sockets são legais porem tem muitos outros modulos
+para se trabalhar no perl eu vo esta mostrando alguns deles...
+
+vamos fazer uma coisa simples primeiro baixar o conteudo de uma pagina
+usando lwp::simple depois salvar o seu conteudo em um arquivo texto
+
+Código: Selecionar tudo
+    use LWP::Simple;
+    my $resultado = get('http://www.pagina_boba.com/index.html');
+    open(texto, ">>resultado.txt"); print texto $resultado; close(texto);
+    #voce pode fazer a mesma coisa usando outro modulo como exemplo
+    #usando IO::Socket...
+    my $socket = IO::Socket::INET->new(
+                                           PeerAddr => "www.wiki.com",
+                                           PeerPort => "80",
+                                           Timeout => "7",
+                                           Proto => "tcp"
+      );
+    die "Nao foi possivel criar a socket\n" unless $socket;
+    if ($socket) {
+    print $socket "GET /index.html HTTP/1.0\r\n\r\n";
+    while (<$socket>) {
+    print "$_";
+    }}
+    close($socket);
+
+
+este programa baixa o html da pagina e imprime na tela o seu codigo
+fonte assim como o lwp::simple..
+outro exemplo
+vamos usar LWP::UserAgent e o HTTP::Request
+
+Código: Selecionar tudo
+    use LWP::UserAgent;
+    print "pegando temperatura Brasil by C00L3R\n";
+    print "qual estato voce quer ver a temperatura\? ex sao_paulo\n";
+    my $local=<STDIN>; chomp $local;
+    my $pagina="http://www1.folha.uol.com.br/folha/tempo/br-$local.shtml";
+    $agent = new LWP::UserAgent;
+    $request = HTTP::Request->new('GET',$pagina);
+    $result = $agent->request($request);
+    @result = $result->content();
+    open(RES,">","temperatura.txt");
+    print RES @result; close(RES); open(RES,"<","temperatura.txt");
+    @texto = <RES>; close(RES); unlink ("temperatura.txt");
+    foreach (@texto) {
+    if ($_ =~ m/^<p><b>Temperatura:<\/b> (.*?)<\/p>/) {
+    my $graus="$1";
+    print "Local: $local \n";
+    print "Temperatura: $graus\n"; }
+    }
+
+
+aqui temos um programa um poco mais complexo que os outros ele nao soh
+baixa a source da pagina como salva em um TXT e retira a temperatura
+usando regex e coloca o numero de graus em uma variavel
+
+Outro programa que mostra o uso de outro modulo bacana de "Web" em perl o
+html::LinkExtor que seria o modulo que  extrai os links de uma pagina exemplo
+
+Código: Selecionar tudo
+    use HTML::LinkExtor;
+    my $file = shift;
+    my $p = HTML::LinkExtor->new;
+    $p->parse_file($file);
+    my @links = $p->links;
+    foreach (@links) {
+      print 'Type: ', shift @$_, "\n";
+      while (my ($name, $val) = splice(@$_, 0, 2)) {
+        print " $name -> $val\n";
+      }
+    }
+
+
+Damos uma pagina para ele extrair com os dados:
+
+Código: Selecionar tudo
+    <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+    <html>
+    <head><title>Test HTML Page</title>
+    <link rel=stylesheet type='text/css' href='style.css'></head>
+    <body background="back.gif">
+    <h1 ALIGN=center>test HTML Page</h1>
+    <p>This is the first paragraph.
+    It contains a <a href="http://www.perl.com/">link</a></p>
+    <p><font color="#0000FF">This</font> is the 2nd paragraph.
+    It contains an image - <img src="test.gif"></p>
+    <p>Here is an image used as a link<br>
+    <a href="http://www.pm.org"><img src="pm.gif"
+    lowsrc="pmsmall.gif"></a></p>
+    </body>
+    </html>
+
+
+veja sua saida
+
+Código: Selecionar tudo
+    Type: link
+      href -> style.css
+    Type: body
+      background -> back.gif
+    Type: a
+      href -> http://www.perl.com/
+    Type: img
+      src -> test.gif
+    Type: a
+      href -> http://www.pm.org
+    Type: img
+      src -> pm.gif
+      lowsrc -> pmsmall.gif
+
+
+
+ele extraiu os links e mostrou o tipo de link "type"
+se voce quiser apenas os link do "type: a" script ficaria
+
+Código: Selecionar tudo
+    use HTML::LinkExtor;
+    my $file = shift;
+    my $p = HTML::LinkExtor->new(\&check);
+    $p->parse_file($file);
+    my @links;
+    foreach (@links) {
+      print 'Type: ', shift @$_, "\n";
+      while (my ($name, $val) = splice(@$_, 0, 2)) {
+        print " $name -> $val\n";
+      }
+    }
+    sub check {
+      push @links, [@_] if $_[0] eq 'a';
+    }
+
+
+Outro modulo bacana de trabalhar o "HTML::TokeParser" com ele voce pode
+retirar apenas que voce quer sem uso de regex ou POG veja o exemplo
+
+Código: Selecionar tudo
+    use HTML::TokeParser;
+    my $file = shift;
+    my $p = HTML::TokeParser->new($file);
+    while ($p->get_tag('h1')) {
+      print $p->get_text(), "\n";
+    }
+
+
+damos comando "perl prog.pl index.html" sendo que o conteudo da index tem
+
+Código: Selecionar tudo
+    <!DOCTYPE HTML PUBLIC "-//IETF//DTD HTML//EN">
+    <html>
+    <head><title>Test HTML Page</title>
+    </head>
+    <body>
+    <h1>The first major item</h1>
+    <h2>Section 1.1</h2>
+    <p>Some text<p>
+    <h2>Section 1.2</h2>
+    <h3>Section 1.2.1</h3>
+    <p>blah</p>
+    <h3>Section 1.2.2</h3>
+    <p>blah</p>
+    <h1>Another major header</h1>
+    <h2>Section 2.1</h2>
+    <h3>Section 2.1.1</h3>
+    <h3>Section 2.1.2</h3>
+    <h2>Section 2.2</h2>
+    </body>
+    </html>
+
+
+veja a saida do resultado do programa
+
+Código: Selecionar tudo
+    The first major item
+    Another major header
+
+
+ou seja ele retirou o que tava entre as tags "h1" bem simples de usar
+fico com artigo por aqui mesmo por que tem muitos outros módulos...
