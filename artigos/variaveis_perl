@@ -1,0 +1,74 @@
+Para ajudar iniciantes do forum bolei este artigo
+para explicar de forma resumida variaveis em perl
+então vamos la...
+
+Primeiro passo variáveis Escalares
+elas podem ser "alfanumericos","interiros e "reais"...
+uma variavel escalar he composta por um cifrão "$" no seu inicio
+exemplo:
+
+Código: Selecionar tudo
+    #!/usr/bin/perl
+    my $teste="30";
+    my $teste2="50";
+    my $teste3=$teste-$teste2;
+    print "$teste3 \n";
+
+
+uma simples subtração,agora vamos a um programa mais bacana
+
+Código: Selecionar tudo
+    #!/usr/bin/perl
+    print "digite um nome\n";
+    my $nome=<STDIN>; chomp $nome;
+    print "voce digitou $nome\n";
+
+
+este exemplo pega o que o user digito e coloca dentro de uma variavel..
+
+Segundo passo variáveis listas ou Arrays
+Bem aqui você tem vetores em forma de cadeias escalar ou matriz...
+a variavel aqui é indentificada pelo arroba "@" vou dar um exemplo
+
+Código: Selecionar tudo
+    #!/usr/bin/perl
+    my @teste=('tonhao','chuck norris','milles davis');
+    print "\n" $teste[2];
+    foreach (@teste) {
+    print "$_\n";
+    }
+
+
+atribuimos uma quantidade de nomes qualquer e imprimimos usando o laço "foreach"
+tambem usamos uma variavel especial "$_" que seria as linhas do nosso "array"
+"$_" nada mais é do que uma variavel predefinida que contem o valor da posição atual
+assim agente nao precisa usar "$teste[0],$teste[1]" para imprimir cada elemento...
+
+Listas associativas ou Hash
+O que indica que a variavel é uma "hash" é porcentagem "%" exemplo "%lista"
+Uma hash na linguagem perl guarda em cada elemento da lista um nome e um valor
+vamos a um exemplo
+
+Código: Selecionar tudo
+    %contas = ();
+    $contas{"cooler"} = 20;
+    $contas{"chuck"} = 300;
+    $contas{"tux"} = -10;
+    $contas{"puffy"} = 420;
+    foreach my $banco (keys %contas) {
+      print $banco . " tem no banco: R$" . $contas{$banco};
+    }
+
+
+Bem aqui iniciamos com uma hash vazia logo depois colocamos elementos nelas sequidos das "Keys(chaves)"
+vamos a um exemplo mais simples
+
+Código: Selecionar tudo
+    #!/usr/bin/perl
+    %Dados = ("Nome", "tux", "Idade", 8, "Grau", "Superior");
+    print $Dados{'Nome'}, " tem ", $Dados{'Idade'}," anos de idade e grau ", $Dados{'Grau'};
+
+
+usamos no exemplo hash para imprimir informações qualquer..
+
+fico com o artigo por aqui :)
